@@ -10,5 +10,3 @@ app.get('/', (req, res) => {
     res.send('Welcome to API Kuliner.Go')
 })
 app.listen(5000, ()=> console.log('Server up and running...'));
-
-module.exports = app
