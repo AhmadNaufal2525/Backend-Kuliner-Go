@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 06 Jan 2023 pada 07.58
+-- Waktu pembuatan: 06 Jan 2023 pada 10.48
 -- Versi server: 10.4.25-MariaDB
 -- Versi PHP: 8.1.10
 
@@ -20,6 +20,27 @@ SET time_zone = "+00:00";
 --
 -- Database: `kuliner_db`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `admin`
+--
+
+CREATE TABLE `admin` (
+  `id` int(11) NOT NULL,
+  `username` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data untuk tabel `admin`
+--
+
+INSERT INTO `admin` (`id`, `username`, `password`, `createdAt`, `updatedAt`) VALUES
+(1, 'Admin Kuliner.Go', '$2b$10$DdTJ8JUG/th2iKlXk.EevuzdTXTi1gSEUG5p0XcamucCmTDZ/wQJK', '2023-01-06 08:32:32', '2023-01-06 08:32:32');
 
 -- --------------------------------------------------------
 
@@ -107,6 +128,12 @@ INSERT INTO `users` (`id`, `email`, `username`, `password`, `createdAt`, `update
 --
 
 --
+-- Indeks untuk tabel `admin`
+--
+ALTER TABLE `admin`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indeks untuk tabel `menu`
 --
 ALTER TABLE `menu`
@@ -127,6 +154,12 @@ ALTER TABLE `users`
 --
 -- AUTO_INCREMENT untuk tabel yang dibuang
 --
+
+--
+-- AUTO_INCREMENT untuk tabel `admin`
+--
+ALTER TABLE `admin`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT untuk tabel `menu`
