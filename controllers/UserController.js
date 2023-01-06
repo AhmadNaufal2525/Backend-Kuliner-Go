@@ -1,21 +1,89 @@
-import User from "../models/UserModel.js";
+import Users from "../models/UserModel.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken"
 
-export const createUser = async(req, res) =>{
+export const getUsers = async (req, res) => {
     try {
-        await User.create(req.body)
-        res.status(201).json({msg: "User Created"});
+        const user = await Users.findAll({
+            attributes:['id','email','username']
+        });
+        res.json(user);
     } catch (error) {
-        console.log(error.message);
-    }
+        res.json({ message: error.message });
+    }  
 }
-export const userLogin = async(req, res) => {
+
+ 
+export const getUsersById = async (req, res) => {
     try {
-        await User.findAll({
-            where:{
-                email: req.body.email
+        const user = await Users.findAll({
+            attributes:['username'],
+            where: {
+                id: req.params.id
             }
         });
+        res.json(user[0]);
     } catch (error) {
-        res.status(404).json({msg:"Email not found"});
-    }
+        res.json({ message: error.message });
+    }  
+}
+ 
+export const Register = async(req, res) => {
+    bcrypt.hash(req.body.password, 10, function(err, hashedPass) {
+        if(err) {
+            res.json ({
+                error: err
+            })
+        }
+        let user = new Users ({
+            email: req.body.email,
+            username: req.body.username,
+            password: hashedPass
+        })
+    
+        user.save()
+        .then(user => {
+            res.json({
+                message : 'Register succesfully'
+            })
+        })
+        .catch(error => {
+            res.json({
+                message : 'An error occured'
+            })
+        })
+    })
+}
+ 
+export const Login = async(req, res) => {
+    var email = req.body.email
+    var password = req.body.password
+
+    Users.findOne({$or : [{email:email},{password:password}]})
+    .then(user => {
+        if(user) {
+            bcrypt.compare(password, user.password, function(err,result) {
+                if(err) {
+                    req.json({
+                        error: err
+                    })
+                }
+                if(result) {
+                    let token = jwt.sign({email: user.email}, 'verySecretValue', {expiresIn: '1h'})
+                    res.json({
+                        message:'Login Successful',
+                        token
+                    })
+                } else {
+                    res.json({
+                        message: 'Wrong password'
+                    })
+                }
+            })
+        } else {
+            res.json({
+                message: 'User not found'
+            })
+        }
+    })
 }

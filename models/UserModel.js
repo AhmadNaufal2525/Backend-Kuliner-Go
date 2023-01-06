@@ -4,15 +4,23 @@ import db from "../config/Database.js";
 const {DataTypes} = Sequelize;
 
 const User = db.define('users',{
-    email: DataTypes.STRING,
-    name: DataTypes.STRING,
-    password: DataTypes.STRING
+    email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
 },{
     freezeTableName:true
 });
 
 export default User;
-
-// (async()=>{
+// (async () => {
 //     await db.sync();
 // })();
