@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 06 Jan 2023 pada 10.48
+-- Waktu pembuatan: 11 Jan 2023 pada 02.16
 -- Versi server: 10.4.25-MariaDB
 -- Versi PHP: 8.1.10
 
@@ -31,16 +31,29 @@ CREATE TABLE `admin` (
   `id` int(11) NOT NULL,
   `username` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
+  `refresh_token` text DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data untuk tabel `admin`
+-- Struktur dari tabel `booking`
 --
 
-INSERT INTO `admin` (`id`, `username`, `password`, `createdAt`, `updatedAt`) VALUES
-(1, 'Admin Kuliner.Go', '$2b$10$DdTJ8JUG/th2iKlXk.EevuzdTXTi1gSEUG5p0XcamucCmTDZ/wQJK', '2023-01-06 08:32:32', '2023-01-06 08:32:32');
+CREATE TABLE `booking` (
+  `id` int(11) NOT NULL,
+  `firstname` varchar(255) DEFAULT NULL,
+  `lastname` varchar(255) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `date` varchar(255) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  `people` varchar(255) DEFAULT NULL,
+  `payment` varchar(255) DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -111,17 +124,10 @@ CREATE TABLE `users` (
   `email` varchar(255) NOT NULL,
   `username` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
+  `refresh_token` text DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
---
--- Dumping data untuk tabel `users`
---
-
-INSERT INTO `users` (`id`, `email`, `username`, `password`, `createdAt`, `updatedAt`) VALUES
-(1, 'jercarl35@gmail.com', 'Jeremia Carlo', '$2b$10$BvnfxBGhJa6LuPDMK2lPs.LCpMKzMtgRMhRlV6DmvuecIfBzNMbzW', '2023-01-06 03:40:38', '2023-01-06 03:40:38'),
-(2, 'ahmad12@gmail.com', 'Naufal123', '$2b$10$0CT054LZ7RMxBhCzD0xXv.wKX3Z7dfkvPTYXV5bPYrtTwXf0MQ8..', '2023-01-06 04:04:37', '2023-01-06 04:04:37');
 
 --
 -- Indexes for dumped tables
@@ -131,6 +137,12 @@ INSERT INTO `users` (`id`, `email`, `username`, `password`, `createdAt`, `update
 -- Indeks untuk tabel `admin`
 --
 ALTER TABLE `admin`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indeks untuk tabel `booking`
+--
+ALTER TABLE `booking`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -159,7 +171,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT untuk tabel `admin`
 --
 ALTER TABLE `admin`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT untuk tabel `booking`
+--
+ALTER TABLE `booking`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `menu`
@@ -171,13 +189,13 @@ ALTER TABLE `menu`
 -- AUTO_INCREMENT untuk tabel `restoran`
 --
 ALTER TABLE `restoran`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
