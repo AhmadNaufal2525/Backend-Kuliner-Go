@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken"
 export const getAdmin = async (req, res) => {
     try {
         const admin = await Admin.findAll({
-            attributes:['id','email','username']
+            attributes:['id','username']
         });
         res.json(admin);
     } catch (error) {
@@ -28,60 +28,67 @@ export const getAdminById = async (req, res) => {
 }
 
 export const Register = async(req, res) => {
-    bcrypt.hash(req.body.password, 10, function(err, hashedPass) {
-        if(err) {
-            res.json ({
-                error: err
-            })
-        }
-        let admin = new Admin ({
-            username: req.body.username,
-            password: hashedPass
-        })
-    
-        admin.save()
-        .then(admin => {
-            res.json({
-                message : 'Register succesfully'
-            })
-        })
-        .catch(error => {
-            res.json({
-                message : 'An error occured'
-            })
-        })
-    })
+    const { username, password } = req.body;
+    const salt = await bcrypt.genSalt();
+    const hashPassword = await bcrypt.hash(password, salt);
+    try {
+        await Admin.create({
+            username: username,
+            password: hashPassword
+        });
+        res.json({msg: "Registration Successful"});
+    } catch (error) {
+        console.log(error);
+    }
 }
 
 export const Login = async(req, res) => {
-    var username = req.body.username
-    var password = req.body.password
+    try {
+        const admin = await Admin.findAll({
+            where:{
+                username: req.body.username
+            }
+        });
+        const match = await bcrypt.compare(req.body.password, admin[0].password);
+        if(!match) return res.status(400).json({msg: "Wrong Password"});
+        const adminId = admin[0].id;
+        const username = admin[0].username;
+        const accessToken = jwt.sign({adminId, username}, process.env.ACCESS_TOKEN_SECRET,{
+            expiresIn: '15s'
+        });
+        const refreshToken = jwt.sign({adminId, username}, process.env.REFRESH_TOKEN_SECRET,{
+            expiresIn: '1d'
+        });
+        await Admin.update({refresh_token: refreshToken},{
+            where:{
+                id: adminId
+            }
+        });
+        res.cookie('refreshToken', refreshToken,{
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000
+        });
+        res.json({ accessToken });
+    } catch (error) {
+        res.status(404).json({msg:"Username tidak terdaftar"});
+    }
+}
 
-    Admin.findOne({$or : [{username:username},{password:password}]})
-    .then(admin => {
-        if(admin) {
-            bcrypt.compare(password, admin.password, function(err,result) {
-                if(err) {
-                    req.json({
-                        error: err
-                    })
-                }
-                if(result) {
-                    let token = jwt.sign({username: admin.username}, 'verySecretValue', {expiresIn: '1h'})
-                    res.json({
-                        message:'Login Successful',
-                        token
-                    })
-                } else {
-                    res.json({
-                        message: 'Wrong password'
-                    })
-                }
-            })
-        } else {
-            res.json({
-                message: 'Admin not found'
-            })
+export const Logout = async(req, res) => {
+    const refreshToken = req.cookies.refreshToken;
+    if(!refreshToken) return res.sendStatus(204);
+    const admin = await Admin.findAll({
+        where:{
+            refresh_token: refreshToken
         }
-    })
+    });
+    if(!admin[0]) return res.sendStatus(204);
+    const adminId = admin[0].id;
+    await Admin.update({refresh_token: null},{
+        where:{
+            id: adminId
+        }
+    });
+    res.clearCookie('refreshToken');
+    return res.sendStatus(200);
 }

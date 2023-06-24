@@ -29,61 +29,73 @@ export const getUsersById = async (req, res) => {
 }
  
 export const Register = async(req, res) => {
-    bcrypt.hash(req.body.password, 10, function(err, hashedPass) {
-        if(err) {
-            res.json ({
-                error: err
-            })
-        }
-        let user = new Users ({
-            email: req.body.email,
-            username: req.body.username,
-            password: hashedPass
-        })
-    
-        user.save()
-        .then(user => {
-            res.json({
-                message : 'Register succesfully'
-            })
-        })
-        .catch(error => {
-            res.json({
-                message : 'An error occured'
-            })
-        })
-    })
+    const { email, username, password } = req.body;
+    const salt = await bcrypt.genSalt();
+    const hashPassword = await bcrypt.hash(password, salt);
+    try {
+        await Users.create({
+            email: email,
+            username: username,
+            password: hashPassword
+        });
+        res.json({msg: "Registration Successful"});
+        
+    } catch (error) {
+        // await Users.findOne({ email: req.body.email });
+        // if (Users) return res.status(400).json({msg: "Email telah terdaftar!"});
+        console.log(error);
+    }
+
 }
  
 export const Login = async(req, res) => {
-    var email = req.body.email
-    var password = req.body.password
+    try {
+        const user = await Users.findAll({
+            where:{
+                email: req.body.email
+            }
+        });
+        const match = await bcrypt.compare(req.body.password, user[0].password);
+        if(!match) return res.status(400).json({msg: "Wrong Password"});
+        const userId = user[0].id;
+        const username = user[0].username;
+        const email = user[0].email;
+        const accessToken = jwt.sign({userId, username, email}, process.env.ACCESS_TOKEN_SECRET,{
+            expiresIn: '15s'
+        });
+        const refreshToken = jwt.sign({userId, username, email}, process.env.REFRESH_TOKEN_SECRET,{
+            expiresIn: '1d'
+        });
+        await Users.update({refresh_token: refreshToken},{
+            where:{
+                id: userId
+            }
+        });
+        res.cookie('refreshToken', refreshToken,{
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000
+        });
+        res.json({ accessToken });
+    } catch (error) {
+        res.status(404).json({msg:"Email tidak terdaftar"});
+    }
+}
 
-    Users.findOne({$or : [{email:email},{password:password}]})
-    .then(user => {
-        if(user) {
-            bcrypt.compare(password, user.password, function(err,result) {
-                if(err) {
-                    req.json({
-                        error: err
-                    })
-                }
-                if(result) {
-                    let token = jwt.sign({email: user.email}, 'verySecretValue', {expiresIn: '1h'})
-                    res.json({
-                        message:'Login Successful',
-                        token
-                    })
-                } else {
-                    res.json({
-                        message: 'Wrong password'
-                    })
-                }
-            })
-        } else {
-            res.json({
-                message: 'User not found'
-            })
+export const Logout = async(req, res) => {
+    const refreshToken = req.cookies.refreshToken;
+    if(!refreshToken) return res.sendStatus(204);
+    const user = await Users.findAll({
+        where:{
+            refresh_token: refreshToken
         }
-    })
+    });
+    if(!user[0]) return res.sendStatus(204);
+    const userId = user[0].id;
+    await Users.update({refresh_token: null},{
+        where:{
+            id: userId
+        }
+    });
+    res.clearCookie('refreshToken');
+    return res.sendStatus(200);
 }
